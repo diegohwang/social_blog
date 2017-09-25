@@ -34,7 +34,7 @@ class DevelopmentConfig(Config):
     DEBUG = True
     MAIL_SERVER = conf.get('mail', 'MAIL_SERVER')
     MAIL_PORT = conf.getint('mail', 'MAIL_PORT')
-    MAIL_USE_TLS = conf.getboolean('mail', 'MAIL_USE_TLS')
+    MAIL_USE_SSL = conf.getboolean('mail', 'MAIL_USE_SSL')
     MAIL_USERNAME = conf.get('mail', 'MAIL_USERNAME')
     MAIL_PASSWORD = conf.get('mail', 'MAIL_PASSWORD')
     SQLALCHEMY_DATABASE_URI = conf.get('app', 'SQLALCHEMY_DATABASE_URI')
