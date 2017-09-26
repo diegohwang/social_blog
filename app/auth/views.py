@@ -3,7 +3,7 @@ from flask import render_template, redirect, request, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from . import auth
 from ..models import User
-from .forms import LoginForm, RegistrationForm, ChangePasswordForm, PasswordResetForm, PasswordResetRequestForm
+from .forms import LoginForm, RegistrationForm, ChangePasswordForm, PasswordResetForm, PasswordResetRequestForm, ChangeEmailForm
 from .. import db
 from ..email import send_email
 
@@ -92,6 +92,7 @@ def change_password():
             flash('Invalid password')
     return render_template('auth/change_password.html', form=form)
 
+#申请重置密码页面，发送重置链接(带token)到用户邮箱
 @auth.route('/reset', methods=['GET', 'POST'])
 def password_reset_request():
     #如果当前用户不是匿名用户
@@ -108,6 +109,7 @@ def password_reset_request():
         return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
 
+#用户在邮件中点击带token的链接，进行密码重置
 @auth.route('/reset/<token>', methods=['GET', 'POST'])
 def password_reset(token):
     if not current_user.is_anonymous:
@@ -123,3 +125,29 @@ def password_reset(token):
         else:
             return redirect((url_for('main.index')))
     return render_template('auth/reset_password.html', form=form)
+
+#申请修改邮箱页面，发送修改页面链接(带token)到用户邮箱
+@auth.route('/change-email', methods=['GET', 'POST'])
+@login_required
+def change_email_request():
+    form = ChangeEmailForm()
+    if form.validate_on_submit():
+        if current_user.verify_password(form.password.data):
+            new_email = form.email.data
+            token = current_user.generate_email_change_token(new_email)
+            send_email(new_email, 'Confirm your email address', 'auth/email/change_email',
+                       user=current_user, token=token)
+            flash('An email with instructions to confirm your new email address has been sent to you.')
+            return redirect(url_for('main.index'))
+        else:
+            flash('Invalid email or password.')
+    return render_template('auth/change_email.html', form=form)
+
+@auth.route('/change-email/<token>')
+@login_required
+def change_email(token):
+    if current_user.change_email(token):
+        flash('Your email address has been updated.')
+    else:
+        flash('Invalid request.')
+    return redirect(url_for('main.index'))
