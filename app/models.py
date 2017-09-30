@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 from . import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+from flask_login import UserMixin, AnonymousUserMixin
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from flask import current_app
 
@@ -120,9 +120,22 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         return True
 
+    '''
+    请求和赋予角色这两种权限之间进行位与操作，返回True表示允许
+    用户执行此项操作
+    '''
+    def can(self, permissions):
+        return self.role is not None and \
+               (self.role.permissions & permissions) == permissions
+
+    #检查是否具有管理员权限
+    def is_administrator(self):
+        return self.can(Permission.ADMINISTER)
+
     def __repr__(self):
         return '<User %r>' % self.username
 
+#权限类
 class Permission():
 
     FOLLOW = 0x01
@@ -131,9 +144,18 @@ class Permission():
     MODERATE_COMMENTS = 0x08
     ADMINISTER = 0x80
 
+class AnonymousUser(AnonymousUserMixin):
+
+    def can(self, permissions):
+        return False
+
+    def is_administrator(self):
+        return False
+
 
 
 from . import login_manager
+login_manager.anonymous_user = AnonymousUser
 #加载用户的回调函数
 @login_manager.user_loader
 def load_user(user_id):
