@@ -25,6 +25,8 @@ class Config:
     FLASKY_MAIL_SUBJECT_PREFIX = conf.get('mail', 'FLASKY_MAIL_SUBJECT_PREFIX')
     FLASKY_MAIL_SENDER = conf.get('mail', 'FLASKY_MAIL_SENDER')
     FLASKY_ADMIN = conf.get('mail', 'FLASKY_ADMIN')
+    FLASKY_POSTS_PER_PAGE = int(conf.get('app', 'FLASKY_POSTS_PER_PAGE'))
+    FLASKY_FOLLOWERS_PER_PAGE = int(conf.get('app', 'FLASKY_FOLLOWERS_PER_PAGE'))
 
     @staticmethod
     def init_app(app):
